@@ -14,33 +14,47 @@ export default class TownScene extends Phaser.Scene {
 
   preload() {
     this.load.image("tiles", "src/assets/tiles/town_map.tmj");
-    this.load.tilemapTiledJSON("map", "src/assets/tiles/town_map.tmj");
+    // this.load.tilemapTiledJSON("map", "src/assets/tiles/town_map.tmj");
+    this.load.image("grass", "src/assets/sprites/tilesets/grass.png");
+    this.load.image("player", "src/assets/sprites/characters/player.png");
 
     // this.load.image("player", "assets/sprites/player.png");
-    // this.load.image("cat1", "assets/sprites/cat1.png");
-    // this.load.image("cat2", "assets/sprites/cat2.png");
+    this.load.image("cat1", "assets/sprites/cat1.png");
+    this.load.image("cat2", "assets/sprites/cat2.png");
     // this.load.image("gate", "assets/sprites/gate.png");
   }
 
   create() {
     // --- TILEMAP ---
-    const map = this.make.tilemap({ key: "map" });
-    const tileset = map.addTilesetImage("town_tiles", "tiles");
+    const TILE_SIZE = 16;
+    const MAP_WIDTH = 50;
+    const MAP_HEIGHT = 50;
+
+    // const map = this.make.tilemap({ key: "map" });
+    for (let y = 0; y < MAP_HEIGHT; y++) {
+      for (let x = 0; x < MAP_WIDTH; x++) {
+        this.add.image(
+          x * TILE_SIZE,
+          y * TILE_SIZE,
+          "grass"
+        ).setOrigin(0, 0);
+      }
+    }
 
     // const ground = map.createLayer("Ground", tileset!, 0, 0);
-    const collisions = map.createLayer("Collisions", tileset!, 0, 0);
+    // const collisions = map.createLayer("Collisions", tileset!, 0, 0);
 
-    collisions?.setCollisionByProperty({ collides: true });
+    // collisions?.setCollisionByProperty({ collides: true });
 
     // --- PLAYER ---
     this.player = this.physics.add.sprite(400, 300, "player");
     this.player.setCollideWorldBounds(true);
 
-    this.physics.add.collider(this.player, collisions!);
+    // this.physics.add.collider(this.player, collisions!);
 
     // --- CAMERA ---
     this.cameras.main.startFollow(this.player);
-    this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+    // this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
 
     // --- INPUT ---
     this.cursors = this.input.keyboard!.createCursorKeys();
