@@ -32,7 +32,10 @@ export default class TownScene extends Phaser.Scene {
   private heldCat: Phaser.Physics.Arcade.Sprite | null = null;
   private heldCats: Phaser.Physics.Arcade.Sprite[] = [];
   private interactKey!: Phaser.Input.Keyboard.Key;
-  private hasPickedUpFirstcat = false;
+  private sceneLocked = false;
+  private yesText!: Phaser.GameObjects.Text;
+  private noText!: Phaser.GameObjects.Text;
+  private choicesVisible = false;
 
   preload() {
     this.load.image("tiles", "src/assets/tiles/town_map.tmj");
@@ -104,52 +107,52 @@ export default class TownScene extends Phaser.Scene {
     this.interactKey = this.input.keyboard!.addKey(
       Phaser.Input.Keyboard.KeyCodes.E
     );
-    const HOUSE_WIDTH = 10;
-    const HOUSE_HEIGHT = 12;
-    // const SHEET_WIDTH = 26;
+    // const HOUSE_WIDTH = 10;
+    // const HOUSE_HEIGHT = 12;
+    // // const SHEET_WIDTH = 26;
 
-    const HOUSE_START_COL = 16;
-    const HOUSE_START_ROW = 2;
-    const HOUSE_MAP: number[][] = [];
-    for (let y = 0; y < HOUSE_HEIGHT; y++) {
-      const row: number[] = [];
-      for (let x = 0; x < HOUSE_WIDTH; x++) {
-        const frame =
-          (HOUSE_START_ROW + y) +
-          (HOUSE_START_COL + x);
-        row.push(frame);
-      }
-      HOUSE_MAP.push(row);
-    }
+    // const HOUSE_START_COL = 16;
+    // const HOUSE_START_ROW = 2;
+    // const HOUSE_MAP: number[][] = [];
+    // for (let y = 0; y < HOUSE_HEIGHT; y++) {
+    //   const row: number[] = [];
+    //   for (let x = 0; x < HOUSE_WIDTH; x++) {
+    //     const frame =
+    //       (HOUSE_START_ROW + y) +
+    //       (HOUSE_START_COL + x);
+    //     row.push(frame);
+    //   }
+    //   HOUSE_MAP.push(row);
+    // }
 
-    function stampObject(
-      scene: Phaser.Scene,
-      map: number[][],
-      startX: number,
-      startY: number,
-      texture: string
-    ) {
-      for (let y = 0; y < map.length; y++) {
-        for (let x = 0; x < map[y].length; x++) {
-          const frame = map[y][x];
-          if (frame === -1) continue;
+    // function stampObject(
+    //   scene: Phaser.Scene,
+    //   map: number[][],
+    //   startX: number,
+    //   startY: number,
+    //   texture: string
+    // ) {
+    //   for (let y = 0; y < map.length; y++) {
+    //     for (let x = 0; x < map[y].length; x++) {
+    //       const frame = map[y][x];
+    //       if (frame === -1) continue;
 
-          scene.add.image(
-            startX + x * TILE_SIZE,
-            startY + y * TILE_SIZE,
-            texture,
-            frame
-          ).setOrigin(0, 0);
-        }
-      }
-    }
-    stampObject(
-      this,
-      HOUSE_MAP,
-      8 * TILE_SIZE,
-      4 * TILE_SIZE,
-      "house"
-    );
+    //       scene.add.image(
+    //         startX + x * TILE_SIZE,
+    //         startY + y * TILE_SIZE,
+    //         texture,
+    //         frame
+    //       ).setOrigin(0, 0);
+    //     }
+    //   }
+    // }
+    // stampObject(
+    //   this,
+    //   HOUSE_MAP,
+    //   8 * TILE_SIZE,
+    //   4 * TILE_SIZE,
+    //   "house"
+    // );
     // const ground = map.createLayer("Ground", tileset!, 0, 0);
     // const collisions = map.createLayer("Collisions", tileset!, 0, 0);
 
@@ -303,6 +306,10 @@ export default class TownScene extends Phaser.Scene {
         this.heldCat.x = this.player.x;
         this.heldCat.y = this.player.y - 20; // slightly above player
       }
+      if (this.sceneLocked) {
+        this.player.setVelocity(0,0);
+        return;
+      }
       this.updateCats(delta);
       this.handleCatInteraction();
       this.handCatsToOwner();
@@ -367,6 +374,80 @@ export default class TownScene extends Phaser.Scene {
       }
     }
 
+    private showValentineChoices() {
+      if (this.choicesVisible) return;
+      this.choicesVisible = true;
+      const centerX = this.scale.width / 2;
+      const centerY = this.scale.height / 2 + 60;
+
+      this.yesText = this.add.text(centerX - 60, centerY, "💕 Yes", {
+        fontSize: "20px",
+        color: "#00ff99"
+      })
+      .setOrigin(0.5)
+      .setInteractive({ useHandCursor: true });
+
+      this.noText = this.add.text(centerX + 60, centerY, "💔 No", {
+        fontSize: "20px",
+        color: "#ff6666"
+      })
+      .setOrigin(0.5)
+      .setInteractive({ useHandCursor: true });
+
+      // YES clicked
+      this.yesText.on("pointerdown", () => {
+        this.handleYes();
+      });
+
+      // NO clicked
+      this.noText.on("pointerdown", () => {
+        this.handleNo();
+      });
+    }
+
+    private handleYes() {
+
+      this.yesText.destroy();
+      this.noText.destroy();
+
+      this.dialogue.show("Yippee Woohooo! ❤️");
+
+      // Cute heart effect
+      this.addHearts();
+
+      // Optional fade out
+      this.time.delayedCall(2000, () => {
+        this.cameras.main.fadeOut(1500);
+      });
+    }
+
+    private handleNo() {
+
+      // Move the NO button away every time it's clicked 😈
+      this.noText.x = Phaser.Math.Between(100, this.scale.width - 100);
+      this.noText.y = Phaser.Math.Between(200, this.scale.height - 100);
+    }
+
+    private addHearts() {
+      for (let i = 0; i < 10; i++) {
+
+        const heart = this.add.text(
+          this.scale.width / 2,
+          this.scale.height / 2,
+          "❤️",
+          { fontSize: "24px" }
+        ).setOrigin(0.5);
+
+        this.tweens.add({
+          targets: heart,
+          y: heart.y - Phaser.Math.Between(80, 150),
+          x: heart.x + Phaser.Math.Between(-50, 50),
+          alpha: 0,
+          duration: 2000,
+          onComplete: () => heart.destroy()
+        });
+      }
+    }
     pickUpCat(cat: Phaser.Physics.Arcade.Sprite) {
       if (this.heldCats.length < 2) {
         cat.disableBody(true, true); // hide + disable physics
@@ -411,6 +492,7 @@ export default class TownScene extends Phaser.Scene {
     }
 
     spawnOwner() {
+      if (this.ownerHasEntered) return;
       this.ownerHasEntered = true;
 
       // Spawn offscreen left
@@ -423,15 +505,6 @@ export default class TownScene extends Phaser.Scene {
       this.time.delayedCall(1500, () => {
         this.owner.setVelocity(0, 0);
         this.owner.play("owner-idle");
-      });
-    }
-
-    startOwnerDialogue() {
-
-      this.dialogue.show("Oh thank you so much for finding my cats!");
-
-      this.time.delayedCall(2000, () => {
-        this.scene.start("NextScene");
       });
     }
 
@@ -501,9 +574,10 @@ export default class TownScene extends Phaser.Scene {
         ) < 40) {
           this.player.setVelocity(0, 0);
 
-          this.dialogue.show("Oh! You found them... Thank you.");
+
           // Small delay for emotional timing
-          this.time.delayedCall(20000, () => {
+          this.time.delayedCall(1000, () => {
+          this.dialogue.show("Oh you found them!\nI don't know how I can thank you...\nWait, I have an idea!")
 
           // Option 1: Visually move cats to owner before removing
             this.heldCats.forEach((cat, index) => {
@@ -521,12 +595,10 @@ export default class TownScene extends Phaser.Scene {
             });
 
             this.heldCats = [];
-            console.log(this.heldCats);
 
-            this.time.delayedCall(1000, () => {
-              console.log("meow");
-              this.dialogue.show("I don't know how to thank you...");
-            });
+            this.time.delayedCall(3000, () => {
+                this.startValentineScene()
+            })
         });
       }
     }
@@ -544,6 +616,37 @@ export default class TownScene extends Phaser.Scene {
         }
       );
     }
+
+    startValentineScene() {
+      this.cameras.main.fadeIn(500);
+      this.cameras.main.zoomTo(1.2, 800);
+      const centerX = this.scale.width / 2;
+      const centerY = this.scale.height / 2;
+
+      // Move player slightly left of center
+      this.player.setPosition(centerX - 40, centerY);
+
+      // Move owner slightly right of center
+      this.owner.setPosition(centerX + 40, centerY);
+
+      // Make them face each other
+      this.player.setFlipX(false);
+      this.owner.setFlipX(true);
+
+      // Remove cats
+      this.heldCats.forEach(cat => cat.destroy());
+      this.heldCats = [];
+
+      // Small dramatic delay
+      this.time.delayedCall(500, () => {
+        this.dialogue.show("Will you be my Valentine? ❤️");
+
+        this.time.delayedCall(500, () => {
+          this.showValentineChoices();
+        });
+      });
+    }
+
 
   createCatAnimations(textureKey: string) {
     if (this.anims.exists(`${textureKey}-sit`)) return;
@@ -611,5 +714,6 @@ export default class TownScene extends Phaser.Scene {
           this.onCatArrived(cat);
       },
     });
+
   }
 }
