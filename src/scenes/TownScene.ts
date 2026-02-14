@@ -159,7 +159,7 @@ export default class TownScene extends Phaser.Scene {
     // collisions?.setCollisionByProperty({ collides: true });
 
     // --- PLAYER ---
-    this.player = this.physics.add.sprite(400, 350, "player", 0);
+    this.player = this.physics.add.sprite(500, 450, "player", 0);
     this.player.setOrigin(0.5, 0.5);
     this.player.setCollideWorldBounds(true);
     this.anims.create({
@@ -296,8 +296,8 @@ export default class TownScene extends Phaser.Scene {
     //   repeat: -1
     // });
 
-    this.createCat(200, 180, "Megacar");
-    this.createCat(260, 220, "Mr. Shredder");
+    this.createCat(350, 300, "Megacar");
+    this.createCat(400, 280, "Mr. Shredder");
   }
 
     update(time: number, delta: number) {
@@ -316,7 +316,7 @@ export default class TownScene extends Phaser.Scene {
     }
 
     handleMovement() {
-      const speed = 150;
+      const speed = 125;
       let vx = 0;
       let vy = 0;
       if (this.cursors.left?.isDown || this.wasd.left.isDown) {
@@ -484,7 +484,7 @@ export default class TownScene extends Phaser.Scene {
         sprite,
         moveTimer: 0,
         direction: new Phaser.Math.Vector2(0, 0),
-        speed: 40,
+        speed: 275,
         name: textureKey
       };
 
@@ -496,7 +496,7 @@ export default class TownScene extends Phaser.Scene {
       this.ownerHasEntered = true;
 
       // Spawn offscreen left
-      this.owner = this.physics.add.sprite(-50, this.scale.height / 2, "owner");
+      this.owner = this.physics.add.sprite(150, this.scale.height / 2, "owner");
 
       this.owner.setVelocityX(60);
       this.owner.setCollideWorldBounds(true);
@@ -522,14 +522,14 @@ export default class TownScene extends Phaser.Scene {
             cat.direction.set(0, 0);
             cat.sprite.setVelocity(0, 0);
             cat.sprite.play(`${key}-sit`, true);
-            cat.moveTimer = Phaser.Math.Between(1500, 3000);
+            cat.moveTimer = Phaser.Math.Between(250, 500);
 
           } else if (roll < 65) {
             // Lay down
             cat.direction.set(0, 0);
             cat.sprite.setVelocity(0, 0);
             cat.sprite.play(`${key}-lay`, true);
-            cat.moveTimer = Phaser.Math.Between(2000, 4000);
+            cat.moveTimer = Phaser.Math.Between(500, 750);
           } else {
             // Wander
             let dx = 0;
